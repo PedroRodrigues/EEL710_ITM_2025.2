@@ -1,93 +1,135 @@
-# ⚙️ Módulo Principal — Simulador de Circuitos Elétricos
+# ⚙️ Módulo `simulador/`
 
-## 🧩 Objetivo
-Este módulo é o **núcleo funcional** do simulador de circuitos elétricos.  
-Ele implementa toda a lógica necessária para:
-- Montar e resolver circuitos elétricos descritos por netlists;
-- Calcular tensões e correntes ao longo do tempo;
-- Gerenciar os elementos lineares e não lineares;
-- Oferecer uma API Python clara e extensível para análise de circuitos.
-
-O desenvolvimento deve priorizar **modularidade, precisão numérica e clareza de código**, garantindo fácil manutenção e expansão futura.
+Este diretório contém o núcleo do **Simulador de Circuitos Elétricos**, desenvolvido em Python e estruturado segundo o paradigma de **Programação Orientada a Objetos (POO)**.  
+O objetivo deste módulo é fornecer a infraestrutura para simulação transiente de circuitos, conforme a **Análise Nodal Modificada (MNA)**, seguindo os requisitos do contrato UFRJ–Electronic Brazil Devices.
 
 ---
 
-## 🧠 Estrutura do Módulo
- 
- ```
- src/simulador/
-├── circuit.py                  # Classe principal Circuito — coordena a simulação
-├── element_base.py             # Classe base Elemento — interface para todos os componentes
-├── elements/                   # Componentes elétricos (R, L, C, fontes, diodo, MOSFET, etc.)
-├── solver/                     # Solvers lineares e Newton–Raphson
-├── integrator/                 # Métodos de integração (Backward Euler)
-├── netlist/                    # Parser e writer de netlists
-└── io/                         # Funções de exportação e visualização de resultados
- ```
+## 🧠 Estrutura Interna
 
- Cada subpacote possui um `README.md` próprio com explicações detalhadas.
-
- ---
-
-## 🚀 Expectativas de Implementação
-
-### 1. Núcleo (`Circuito`)
-- Deve ser responsável por armazenar todos os elementos e nós do circuito.  
-- Montar as matrizes de condutância (G), fontes (I) e variáveis de estado (x).  
-- Executar o loop de simulação, chamando o integrador e o solver conforme necessário.  
-- Manter interface clara: `adicionar_elemento()`, `simular()`, `obter_resultados()`.
-
-### 2. Elementos (`Elemento` e `elements/`)
-- Cada elemento deve herdar de `ElementoBase`.
-- Implementar métodos padrão:
-  - `stamp(G, I, x)` → adiciona contribuições nas matrizes;
-  - `update_state()` → atualiza variáveis internas no tempo.
-- A modelagem deve seguir o **Anexo I** do contrato (matrizes e equações).
-
-### 3. Solver (`solver/`)
-- Resolver sistemas lineares via `numpy.linalg.solve`.
-- Implementar método Newton–Raphson para componentes não lineares.
-- Garantir convergência e tratamento de falhas numéricas.
-
-### 4. Integrador (`integrator/`)
-- Implementar **Backward Euler** para análise transiente.
-- Permitir futura extensão para Trapezoidal e Forward Euler.
-- Controlar passo de tempo (`Δt`) e estabilidade numérica.
-
-### 5. Netlist (`netlist/`)
-- Ler netlists estilo SPICE.
-- Criar instâncias de elementos automaticamente.
-- Fornecer utilitários de exportação e importação para diferentes formatos.
-
-### 6. IO (`io/`)
-- Gerar gráficos de tensão e corrente (via `matplotlib`).
-- Exportar resultados em CSV e Pandas DataFrame.
+```
+simulador/
+├── elements/           # Classes que representam componentes elétricos (R, L, C, Diodo, MOSFET, etc.)
+├── integrator/         # Métodos numéricos de integração no tempo (Backward Euler, Forward Euler, Trapezoidal)
+├── solver/             # Solvers lineares e não lineares (Newton–Raphson)
+├── netlist/            # Leitura e escrita de netlists SPICE-like
+└── io/                 # Saída de resultados, exportação e visualização
+```
 
 ---
 
-## 🧱 Diretrizes de Desenvolvimento
-- Seguir **PEP8** e manter **tipagem estática (type hints)**.
-- Todos os módulos devem ter **testes unitários** (`pytest`).
-- Evitar dependências externas além de:
-  - `numpy`, `scipy`, `matplotlib`, `pandas`.
-- Comentários e docstrings devem seguir o padrão **Google Style**.
-- Utilizar **orientação a objetos** e **princípio de responsabilidade única**.
+## 🧩 Descrição dos Submódulos
+
+### `elements/`
+Define as classes de cada **elemento de circuito**, todas herdando de uma classe base `ElementoCircuito`.  
+O uso de **herança e polimorfismo** é obrigatório — cada classe implementa o método `stamp()` para adicionar suas contribuições à matriz de condutâncias `G` e vetor `b`.
+
+**Elementos implementados:**
+- Resistor, Capacitor, Indutor  
+- Fontes independentes (tensão e corrente)  
+- Fontes controladas (E, F, G, H)  
+- Diodo, MOSFET e resistor não linear  
+- Amplificador operacional ideal  
 
 ---
 
-## 🧩 Exemplo de Uso (prototípico)
+### `integrator/`
+Contém as rotinas de integração no domínio do tempo (análise transiente).
+
+**Métodos suportados:**
+- `Backward Euler` (obrigatório)  
+- `Forward Euler` e `Trapezoidal` (estruturas previstas)
+
+O motor de simulação (`time_analysis.py`) gerencia:
+- Controle de passo (`Δt`)
+- Iterações internas
+- Testes de convergência (`tolerância ≤ 0.001`)
+- Reiteração com novos valores de `x(t)` até convergir (máx. 100 tentativas)
+
+---
+
+### `solver/`
+Implementa os algoritmos numéricos para resolver o sistema `A·x = b` e o **método de Newton–Raphson** para elementos não lineares.
+
+**Principais funções:**
+- `solve_linear(A, b)` — solução direta via `numpy.linalg.solve`
+- `newton_raphson(circuito, N=50, M=100, tol=1e-3)` — controle de iteração e convergência
+
+---
+
+### `netlist/`
+Responsável pelo **parsing e escrita de netlists** compatíveis com SPICE.  
+Permite a criação de circuitos a partir de arquivos `.net` ou diretamente via API Python.
+
+**Principais arquivos:**
+- `parser.py` — leitura e tokenização de netlists  
+- `writer.py` — exportação de circuitos para `.net`  
+- `models/` — definições de formato por tipo de componente  
+
+---
+
+### `io/`
+Gerencia as **saídas da simulação**, armazenando resultados em estruturas acessíveis como `dict` ou `pandas.DataFrame`.
+
+**Funções principais:**
+- `export_results()` — salva dados em `.csv`
+- `plot_results()` — gera gráficos de tensão e corrente em função do tempo  
+
+---
+
+## 🧮 Fluxo de Execução
+
+1. **Leitura ou construção** do circuito (via netlist ou API Python);
+2. **Instanciação dos elementos** e montagem das matrizes do sistema;
+3. **Simulação temporal** com o método Backward Euler;
+4. **Iteração de Newton–Raphson** para elementos não lineares;
+5. **Armazenamento e plotagem** dos resultados.
+
+---
+
+## 📚 Exemplo de Uso
+
+### Construção via código:
 ```python
-from simulador.circuit import Circuito
-from simulador.elements import Resistor, Capacitor, FonteDC
+from simulador.netlist import parser
+from simulador.integrator.time_analysis import simulate
 
-# Criar circuito
-c = Circuito("RC simples")
-c.adicionar_elemento(Resistor("R1", "n1", "n0", 1e3))
-c.adicionar_elemento(Capacitor("C1", "n1", "n0", 1e-6))
-c.adicionar_elemento(FonteDC("V1", "n1", "n0", 5))
+circuito = parser.load_netlist("tests/fixtures/lc.net")
+resultados = simulate(circuito, metodo="BE", tmax=3e-3, dt=1e-5)
+resultados.plot()
+```
 
-# Executar análise transiente
-resultado = c.simular(tempo_final=0.01, passo=1e-5)
+### Construção via código:
 
-# Visualizar resultados
-resultado.plotar()
+```python
+from simulador.elements import Resistor, Capacitor, FonteTensao
+from simulador.circuito import Circuito
+
+c = Circuito()
+c.adicionar(Resistor("R1", "1", "0", 1000))
+c.adicionar(Capacitor("C1", "1", "0", 1e-6))
+c.adicionar(FonteTensao("V1", "1", "0", tipo="DC", valor=5))
+res = c.simular(metodo="BE", tmax=1e-3, dt=1e-5)
+res.plot()
+```
+
+---
+
+## 🧪 Testes Automatizados
+
+Os testes são implementados com Pytest e executados automaticamente pelo GitHub Actions.
+
+### Exemplos de testes:
+
+* Validação de leitura de netlists (test_netlist_parser.py)
+* Teste de simulação LC e Chua (test_time_analysis.py)
+* Teste de convergência de Newton–Raphson (test_solver.py)
+* Comparação com saídas de referência do Anexo II
+
+Para executar manualmente:
+
+```
+pytest -v --maxfail=1 --disable-warnings
+```
+
+---
