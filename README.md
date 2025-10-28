@@ -34,8 +34,9 @@ simulador-circuitos/
 ├── pyproject.toml               # Configuração de build e metadados
 ├── .editorconfig                # Sincroniza as configurações do VSCode
 ├── .github/
-│   ├── workflows/ci.yml         # Pipeline de integração contínua
-│   └── README.md                # Detalhes do CI/CD
+│   └── workflows/
+│       ├── ci.yml               # Pipeline de integração contínua
+│       └── README.md            # Detalhes do CI/CD
 ├── src/
 │   └── simulador/
 │       ├── README.md            # Estrutura e organização do código
@@ -139,7 +140,7 @@ A documentação será gerada em `docs/_build/html/index.html`.
 * Pedro Rodrigues: [[rodriguespedro@poli.ufrj.br](mailto:rodriguespedro@poli.ufrj.br)]
 * Anderson Sandes: [[anderson.sandes@me.com](mailto:anderson.sandes@me.com)]
 * Lucas Duque: [[lucasduque.ma@gmail.com](mailto:lucasduque.ma@gmail.com)]
-* Vinícius Falcão: [[viniciusfalcaodeassis@gmail.com ](mailto:viniciusfalcaodeassis@gmail.com )]
+* Vinícius Falcão: [[viniciusfalcaodeassis@gmail.com](mailto:viniciusfalcaodeassis@gmail.com )]
 
 ---
 
